@@ -138,13 +138,20 @@ public struct AltitudeHUDView: View {
                             .padding(.top, 4)
                     }
                 } else {
-                    Text(state.description)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                        .padding(.horizontal, 12)
-                        .padding(.vertical, 6)
-                        .background(.ultraThinMaterial)
-                        .clipShape(Capsule())
+                    VStack(spacing: 4) {
+                        Text(state.title)
+                            .font(.subheadline)
+                            .fontWeight(.semibold)
+                            .foregroundColor(.primary)
+                        Text(state.description)
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                            .multilineTextAlignment(.center)
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(.ultraThinMaterial)
+                    .clipShape(Capsule())
                 }
             }
         }
@@ -162,14 +169,7 @@ public struct AltitudeHUDView: View {
     }
 
     private func getIconColor() -> Color {
-        switch state {
-        case .none: return .gray
-        case .person: return .green
-        case .building: return .blue
-        case .mountain: return .orange
-        case .cloud: return .primary
-        case .airplane: return .blue
-        }
+        state.color
     }
 }
 

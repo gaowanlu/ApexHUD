@@ -4,30 +4,18 @@ import SwiftUI
 
 // MARK: - ComparisonState
 
-public enum ComparisonState {
-    case none, person, building, mountain, cloud, airplane
+/// Represents a single altitude milestone analogy
+public struct AltitudeAnalogy: Equatable {
+    public let title: String
+    public let description: String
+    public let iconName: String
+    public let color: Color
+}
 
-    public var iconName: String {
-        switch self {
-        case .none: return "antenna.radiowaves.left.and.right"
-        case .person: return "figure.wave"
-        case .building: return "building.2.fill"
-        case .mountain: return "mountain.2.fill"
-        case .cloud: return "cloud.sun.fill"
-        case .airplane: return "airplane"
-        }
-    }
-
-    public var description: String {
-        switch self {
-        case .none: return "等待定位..."
-        case .person: return "地面视角"
-        case .building: return "城市楼宇间"
-        case .mountain: return "高山海拔"
-        case .cloud: return "云端之上"
-        case .airplane: return "巡航高空"
-        }
-    }
+/// The current altitude state in the ViewModel
+public enum ComparisonState: Equatable {
+    case none
+    case analogy(AltitudeAnalogy)
 }
 
 // MARK: - Mountain Models
@@ -84,48 +72,19 @@ public struct MountainState {
 
 // MARK: - HUD Models
 
-/// HUD 山峰状态
-public struct HUDMountainState {
-    let mountain: HUDMountain
-    let altitudeDifference: Double
-    let currentAltitude: Double
+/// HUD 离线状态模型 (用于 UI 层)
+public struct HUDComparisonState: Equatable {
+    public let title: String
+    public let description: String
+    public let iconName: String
+    public let color: Color
 
-    var description: String {
-        if altitudeDifference > 0 {
-            return "比\(mountain.name)低\(String(format: "%.0f", abs(altitudeDifference)))米"
-        } else if altitudeDifference < 0 {
-            return "超过\(mountain.name)\(String(format: "%.0f", abs(altitudeDifference)))米"
-        } else {
-            return "与\(mountain.name)同海拔"
-        }
-    }
-}
-
-/// HUD 离线状态枚举
-public enum HUDComparisonState {
-    case none, person, building, mountain, cloud, airplane
-
-    var iconName: String {
-        switch self {
-        case .none: return "antenna.radiowaves.left.and.right"
-        case .person: return "figure.wave"
-        case .building: return "building.2.fill"
-        case .mountain: return "mountain.2.fill"
-        case .cloud: return "cloud.sun.fill"
-        case .airplane: return "airplane"
-        }
-    }
-
-    var description: String {
-        switch self {
-        case .none: return "等待定位..."
-        case .person: return "地面视角"
-        case .building: return "城市楼宇间"
-        case .mountain: return "高山海拔"
-        case .cloud: return "云端之上"
-        case .airplane: return "巡航高空"
-        }
-    }
+    public static let none = HUDComparisonState(
+        title: "等待定位...",
+        description: "",
+        iconName: "antenna.radiowaves.left.and.right",
+        color: .gray
+    )
 }
 
 /// HUD 山峰
@@ -152,16 +111,36 @@ public struct HUDMountain: Identifiable {
     }
 }
 
+/// HUD 山峰状态
+public struct HUDMountainState {
+    let mountain: HUDMountain
+    let altitudeDifference: Double
+    let currentAltitude: Double
+
+    var description: String {
+        if altitudeDifference > 0 {
+            return "比\(mountain.name)低\(String(format: "%.0f", abs(altitudeDifference)))米"
+        } else if altitudeDifference < 0 {
+            return "超过\(mountain.name)\(String(format: "%.0f", abs(altitudeDifference)))米"
+        } else {
+            return "与\(mountain.name)同海拔"
+        }
+    }
+}
+
 // MARK: - Conversion Functions
 
 public func convertComparisonState(_ state: ComparisonState) -> HUDComparisonState {
     switch state {
-    case .none: return .none
-    case .person: return .person
-    case .building: return .building
-    case .mountain: return .mountain
-    case .cloud: return .cloud
-    case .airplane: return .airplane
+    case .none:
+        return .none
+    case .analogy(let analogy):
+        return HUDComparisonState(
+            title: analogy.title,
+            description: analogy.description,
+            iconName: analogy.iconName,
+            color: analogy.color
+        )
     }
 }
 
@@ -182,6 +161,23 @@ public func convertMountainState(_ state: MountainState) -> HUDMountainState {
 }
 
 // MARK: - Database & Helpers
+
+/// 预设的海拔类比里程碑
+internal let altitudeMilestoneRanges: [(min: Double, max: Double, analogy: AltitudeAnalogy)] = [
+    (-Double.infinity, -0.001, AltitudeAnalogy(title: "海平面以下", description: "正在深海或低洼地带探索", iconName: "water.waves", color: .blue)),
+    (0.0, 10.0, AltitudeAnalogy(title: "地面高度", description: "就在脚下，感受大地的厚度", iconName: "figure.walk", color: .green)),
+    (10.0, 100.0, AltitudeAnalogy(title: "低空掠过", description: "正在穿过树丛或低矮建筑", iconName: "tree.fill", color: .green)),
+    (100.0, 500.0, AltitudeAnalogy(title: "城市高度", description: "在摩天大楼之间穿梭", iconName: "building.2.fill", color: .blue)),
+    (500.0, 2000.0, AltitudeAnalogy(title: "山麓地带", description: "正在接近山脉的脚下", iconName: "mountain.2.fill", color: .orange)),
+    (2000.0, 4000.0, AltitudeAnalogy(title: "高山巡航", description: "进入了真正的山岳世界", iconName: "mountain.fill", color: .orange)),
+    (4000.0, 6000.0, AltitudeAnalogy(title: "雪线之上", description: "踏入了终年积雪的高海拔区", iconName: "snowflake", color: .blue)),
+    (6000.0, 8000.0, AltitudeAnalogy(title: "极限高度", description: "挑战生命极限的高空", iconName: "wind", color: .indigo)),
+    (8000.0, 8848.0, AltitudeAnalogy(title: "珠峰之巅", description: "正在冲刺世界之巅", iconName: "mountain.3.fill", color: .red)),
+    (8848.0, 10000.0, AltitudeAnalogy(title: "平流层边缘", description: "越过珠峰，进入飞行高度", iconName: "airplane", color: .blue)),
+    (10000.0, 15000.0, AltitudeAnalogy(title: "高空巡航", description: "飞机常见的巡航高度", iconName: "airplane", color: .blue)),
+    (15000.0, 20000.0, AltitudeAnalogy(title: "高空极境", description: "稀薄的大气，接近太空", iconName: "cloud.fill", color: .indigo)),
+    (20000.0, Double.infinity, AltitudeAnalogy(title: "近太空", description: "接近大气层的边缘", iconName: "rocket", color: .purple))
+]
 
 let mountainDatabase: [Mountain] = [
     Mountain(name: "玉山北峰", height: 3952, location: "台湾", range: "玉山山脉", summary: "台湾第二高峰，冬季积雪期短", details: "玉山北峰海拔3952米，是台湾第二高峰。山体主要由白岗 granite 组成，冬季有短暂积雪。可从嘉义阿里山国家森林游乐区登山口进入，需申请入山证。", iconName: "mountain.2.fill"),
@@ -299,19 +295,21 @@ public class OfflineSensorViewModel: NSObject, CLLocationManagerDelegate {
     // MARK: - 辅助逻辑
 
     private func updateAltitudeState(for altitude: Double) {
-        let newState: ComparisonState
-        if altitude < 0 { newState = .none }
-        else if altitude < 2.0 { newState = .person }
-        else if altitude < 300.0 { newState = .building }
-        else if altitude < 1000.0 { newState = .mountain }
-        else if altitude < 4000.0 { newState = .cloud }
-        else { newState = .airplane }
+        // Find the appropriate analogy based on altitude
+        let newState: ComparisonState = altitudeMilestoneRanges.first { range in
+            altitude >= range.min && altitude < range.max
+        }.map { .analogy($0.analogy) } ?? .none
 
         withAnimation(.spring()) {
             self.comparisonState = newState
 
-            if newState == .mountain {
-                if let mountain = findClosestMountain(for: altitude) {
+            // Re-check for specific mountain landmarks
+            if let mountain = findClosestMountain(for: altitude) {
+                // If we are within a reasonable range of a mountain peak, show mountain state
+                // This allows the "surpassing" experience.
+                let isCloseToMountain = abs(mountain.height - altitude) < (mountain.height * 0.1) || abs(mountain.height - altitude) < 500
+
+                if isCloseToMountain {
                     self.mountainState = MountainState(
                         mountain: mountain,
                         altitudeDifference: mountain.height - altitude,
