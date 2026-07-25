@@ -8,12 +8,6 @@ struct GameCompassView: View {
 
     var body: some View {
         VStack(spacing: 16) {
-            Text("COMPASS")
-                .font(.caption)
-                .fontWeight(.semibold)
-                .foregroundColor(.secondary)
-                .tracking(2)
-
             ZStack {
                 // Outer Ring
                 Circle()
@@ -59,11 +53,11 @@ struct GameCompassView: View {
 
                         // West Marker
                         HStack {
-                            Spacer()
                             Text("W")
                                 .font(.caption)
                                 .fontWeight(.bold)
                                 .foregroundColor(.secondary)
+                            Spacer()
                         }
                         .padding(.leading, 10)
                     }
@@ -75,7 +69,7 @@ struct GameCompassView: View {
             .clipShape(Circle())
             .shadow(color: .black.opacity(0.1), radius: 10, x: 0, y: 5)
 
-            Text(headingText)
+            Text("\(String(format: "%.1f", heading))° \(headingText)")
                 .font(.system(.title2, design: .rounded))
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
