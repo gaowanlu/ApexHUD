@@ -29,7 +29,7 @@ struct DebugOverlay: View {
                 }
                 .padding(.horizontal, 16)
 
-                Slider(value: $vm.altitude, in: -10...6000) { _ in
+                Slider(value: $vm.altitude, in: -10000...20000) { _ in
                     vm.debugSetAltitude(vm.altitude)
                 }
                 .tint(.green)
