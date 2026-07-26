@@ -7,6 +7,7 @@ import CoreLocation
 struct ContentView: View {
     @State private var sensorVM = OfflineSensorViewModel()
     @State private var isShowingDebug = false
+    @State private var isShowingSettings = false
 
     var body: some View {
         ZStack {
@@ -36,15 +37,25 @@ struct ContentView: View {
             }
             .padding(20)
 
-            // Top-right Debug Button
+            // Top-right Menu
             VStack {
                 HStack {
                     Spacer()
-                    Button {
-                        isShowingDebug.toggle()
+                    Menu {
+                        Button {
+                            isShowingDebug.toggle()
+                        } label: {
+                            Label("Debug", systemImage: "hammer.fill")
+                        }
+
+                        Button {
+                            isShowingSettings.toggle()
+                        } label: {
+                            Label("Settings", systemImage: "gearshape.fill")
+                        }
                     } label: {
-                        Image(systemName: "gearshape.fill")
-                            .font(.title3)
+                        Image(systemName: "ellipsis.circle.fill")
+                            .font(.title2)
                             .foregroundColor(.secondary)
                             .padding(10)
                             .background(.ultraThinMaterial)
@@ -59,6 +70,9 @@ struct ContentView: View {
             DebugOverlay(vm: sensorVM)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
+        }
+        .sheet(isPresented: $isShowingSettings) {
+            SettingsView()
         }
     }
 }
