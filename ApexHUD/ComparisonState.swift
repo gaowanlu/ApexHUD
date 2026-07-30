@@ -234,6 +234,8 @@ public class OfflineSensorViewModel: NSObject, CLLocationManagerDelegate {
     public var heading: Double = 0.0 // 0.0 - 360.0 (正北为0)
     public var headingText: String = "N"
 
+    private var smoothedHeading: Double?
+
     public override init() {
         super.init()
         setupSensors()
@@ -287,9 +289,34 @@ public class OfflineSensorViewModel: NSObject, CLLocationManagerDelegate {
         let currentHeading = newHeading.trueHeading > 0 ? newHeading.trueHeading : newHeading.magneticHeading
 
         DispatchQueue.main.async {
-            self.heading = currentHeading
-            self.updateHeadingText(currentHeading)
+            self.heading = self.applyLowPassFilter(to: currentHeading)
+            self.updateHeadingText(self.heading)
         }
+    }
+
+    private func applyLowPassFilter(to newHeading: Double) -> Double {
+        guard let previousHeading = smoothedHeading else {
+            smoothedHeading = newHeading
+            return newHeading
+        }
+
+        let alpha = 0.2 // 越小越平滑，但也越有延迟
+
+        // 计算角度差，处理 360/0 越界问题
+        var diff = newHeading - previousHeading
+        if diff > 180 {
+            diff -= 360
+        } else if diff < -180 {
+            diff += 360
+        }
+
+        let smoothed = previousHeading + (alpha * diff)
+
+        // 归一化到 0-360
+        let normalized = (smoothed + 360).truncatingRemainder(dividingBy: 360)
+
+        smoothedHeading = normalized
+        return normalized
     }
 
     // MARK: - 辅助逻辑

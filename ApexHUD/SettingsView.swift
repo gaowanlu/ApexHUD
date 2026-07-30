@@ -24,18 +24,29 @@ struct SettingsView: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section(header: Text("Appearance")) {
-                    Picker("Color Scheme", selection: $selectedScheme) {
+                Section {
+                    Picker(selection: $selectedScheme) {
                         ForEach(AppColorScheme.allCases) { scheme in
                             Text(scheme.rawValue).tag(scheme)
                         }
+                    } label: {
+                        Label("Color Scheme", systemImage: "paintbrush.fill")
                     }
-                    .pickerStyle(.segmented)
+                } header: {
+                    Text("Appearance")
+                }
+
+                Section {
+                    LabeledContent("Version", value: "1.0.0")
+                    LabeledContent("Build", value: "2026.07.31")
+                } header: {
+                    Text("About")
                 }
             }
             .navigationTitle("Settings")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .preferredColorScheme(selectedScheme.colorScheme)
     }
 }
 

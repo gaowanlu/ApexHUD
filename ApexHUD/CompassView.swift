@@ -62,6 +62,7 @@ struct GameCompassView: View {
                         .padding(.leading, 10)
                     }
                     .rotationEffect(Angle(degrees: -heading))
+                    .animation(.easeInOut(duration: 0.2), value: heading)
                 }
             }
             .frame(width: 140, height: 140)
@@ -73,6 +74,7 @@ struct GameCompassView: View {
                 .font(.system(.title2, design: .rounded))
                 .fontWeight(.bold)
                 .foregroundColor(.primary)
+                .animation(.default, value: headingText)
         }
     }
 }
